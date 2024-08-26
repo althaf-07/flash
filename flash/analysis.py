@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional, Literal, Dict, Tuple
+from typing import List, Union, Optional, Literal, Dict, Tuple
 import numpy as np
 import pandas as pd
 import seaborn as sns
