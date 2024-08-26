@@ -187,7 +187,7 @@ def pair_viz(
     
 def corr_heatmap_viz(
     df: pd.DataFrame,
-    numerical_features: List[str]
+    numerical_features: List[str],
     method: Literal['pearson', 'spearman'] = 'pearson',
     cmap: Optional[str] = None,
     mask: Optional[Literal['upper', 'lower', None]] = 'upper',  
