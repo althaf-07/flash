@@ -1,6 +1,6 @@
 from typing import List, Optional, Union, Literal, Tuple
 import pandas as pd
-from utils import _handle_dataframe_errors
+from .utils import _handle_dataframe_errors
 
 def extract_features(
     df: pd.DataFrame,

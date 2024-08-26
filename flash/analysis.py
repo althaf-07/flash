@@ -7,7 +7,7 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from sklearn.preprocessing import FunctionTransformer, PowerTransformer, QuantileTransformer
-from utils import _handle_dataframe_errors
+from .utils import _handle_dataframe_errors
 
 def stats_moments(
     df: pd.DataFrame, 
