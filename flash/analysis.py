@@ -82,7 +82,8 @@ def nan_value_viz(
     figsize = figsize or (df.shape[1] / 4 * 5, 4)
     
     # Plot heatmap for missing values
-    sns.heatmap(df.isna(), figsize=figsize, cbar=False, cmap=cmap, yticklabels=False)
+    plt.figure(figsize=figsize)
+    sns.heatmap(df.isna(), cbar=False, cmap=cmap, yticklabels=False)
     
     if xticks_rotation is not None:  
         plt.xticks(rotation=xticks_rotation)
