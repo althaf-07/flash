@@ -18,10 +18,10 @@ def stats_moments(
     moments_df = pd.DataFrame(
         [
             {
-                'Mean': round(float(df[col].mean()), round_),
-                'Standard deviation': round(float(df[col].std()), round_),
-                'Skewness': round(float(df[col].skew()), round_),
-                'Kurtosis': round(float(df[col].kurtosis()), round_)
+                'Mean': round(float(df[feature].mean()), round_),
+                'Standard deviation': round(float(df[feature].std()), round_),
+                'Skewness': round(float(df[feature].skew()), round_),
+                'Kurtosis': round(float(df[feature].kurtosis()), round_)
             }
             for feature in numerical_features
         ],
