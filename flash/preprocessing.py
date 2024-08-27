@@ -8,10 +8,14 @@ def extract_features(
     ignore_cols: Optional[Union[str, List[str]]] = None,
     unique_value_threshold: Optional[int] = 12
 ) -> Union[List[str], Tuple[List[str]]]:
+    # Validate the feature_type input
+    if feature_type not in {'num', 'cat', 'others', 'all'}:
+        raise ValueError("The 'feature_type' parameter must be 'num', 'cat', 'others', or 'all'.")
+
     # Handle DataFrame errors
     df = _handle_dataframe_errors(df)
 
-    # Ensure ignore_cols is a list
+    # Ensure ignore_cols is a list and drop the columns from DataFrame
     if ignore_cols:
         if isinstance(ignore_cols, str):
             ignore_cols = [ignore_cols]
@@ -21,12 +25,15 @@ def extract_features(
 
     # Select numerical features
     numerical_features = df.select_dtypes(include=['number']).columns.tolist()
-    numerical_features = [col for col in numerical_features if df[col].nunique() > unique_value_threshold]
-
+    
     # Select categorical features
     categorical_features = df.select_dtypes(include=['bool', 'object', 'category']).columns.tolist()
-    categorical_features += [col for col in df.columns if df[col].nunique() <= unique_value_threshold and col not in numerical_features]
+    categorical_features += [col for col in numerical_features if df[col].nunique() <= unique_value_threshold]
+    
+    # Filter out real numerical features (i.e., those with more unique values than the threshold)
+    numerical_features = [col for col in numerical_features if col not in categorical_features]
 
+    # Return based on feature_type
     if feature_type == 'num':
         return numerical_features
     elif feature_type == 'cat':
@@ -38,8 +45,6 @@ def extract_features(
     elif feature_type == 'all':
         other_features = [col for col in df.columns if col not in set(numerical_features + categorical_features)]
         return numerical_features, categorical_features, other_features
-    else:
-        raise ValueError("The 'feature_type' parameter must be 'num', 'cat', 'others', or 'all'.")
         
 def find_outliers(
     df: pd.DataFrame,  
