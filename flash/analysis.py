@@ -47,7 +47,7 @@ def hist_box_viz(
     
     # Calculate figure size if not provided
     n_features = len(numerical_features)
-    figsize = figsize or (12.5, n_features * 3 + 1)
+    figsize = figsize or (13, n_features * 3 + 1)
     
     # Create subplots: one column for histograms, one for boxplots
     fig, axs = plt.subplots(n_features, 2, figsize=figsize)
@@ -164,7 +164,7 @@ def pair_viz(
     n_features = len(numerical_features)
 
     # Calculate figure size if not provided
-    figsize = figsize or (12.5, n_features + 3)
+    figsize = figsize or (13, n_features + 3)
 
     if kind == 'reg':
         plot_kws = plot_kws or {'line_kws': {'color': 'red'}}
@@ -247,7 +247,7 @@ def crosstab_heatmap_viz(
     n_plots = n_features * (n_features - 1) // 2 if reference_feature is None else n_features
 
     # Automatically adjust figure size if not provided
-    figsize = figsize or (12.5, n_plots * 5)
+    figsize = figsize or (13, n_plots * 5)
     fig, axs = plt.subplots(n_plots, 2, figsize=figsize)
     axs = axs.reshape(-1, 2)  # Flatten the array of subplots
 
@@ -299,7 +299,7 @@ def violin_point_viz(
             raise ValueError("Categorical feature is not in the DataFrame.")
         
         n_features = len(numerical_features)
-        figsize = figsize or (12.5, n_features * 4)
+        figsize = figsize or (13, n_features * 4)
         fig, axs = plt.subplots(n_features, 2, figsize=figsize, constrained_layout=True)
         
         for i, num in enumerate(numerical_features):
@@ -312,7 +312,7 @@ def violin_point_viz(
             raise ValueError("Numerical feature is not in the DataFrame.")
         
         n_features = len(categorical_features)
-        figsize = figsize or (12.5, n_features * 4)
+        figsize = figsize or (13, n_features * 4)
         fig, axs = plt.subplots(n_features, 2, figsize=figsize, constrained_layout=True)
         
         for i, cat in enumerate(categorical_features):
