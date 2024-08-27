@@ -146,9 +146,10 @@ def count_viz(
 
 def pair_viz(
     df: pd.DataFrame, 
-    numerical_features: List[str], 
+    numerical_features: List[str],
     kind: Optional[Literal['scatter', 'kde', 'hist', 'reg']] = 'scatter', 
-    diag_kind: Optional[Literal['auto', 'hist', 'kde', None]] = 'kde', 
+    diag_kind: Optional[Literal['auto', 'hist', 'kde', None]] = 'kde',
+    mask: Optional[Literal['upper', 'lower', None]] = 'upper',
     plot_kws: Optional[Dict[str, any]] = None,
     diag_kws: Optional[Dict[str, any]] = None,
     grid_kws: Optional[Dict[str, any]] = None,
@@ -159,7 +160,7 @@ def pair_viz(
     """
     
     # Handle dataframe errors
-    df = _handle_dataframe_errors(df)
+    df = _handle_dataframe_errors(df[numerical_features])
     
     n_features = len(numerical_features)
 
@@ -181,11 +182,12 @@ def pair_viz(
     g = sns.pairplot(df[numerical_features], kind=kind, diag_kind=diag_kind, 
                      plot_kws=plot_kws, diag_kws=diag_kws, grid_kws=grid_kws, 
                      height=height, aspect=aspect)
-
-    g.map_upper(_hide_current_axis)
-
-    plt.show()
     
+    # Apply mask
+    _apply_mask_pairplot(g, mask)
+    
+    plt.show()
+
 def corr_heatmap_viz(
     df: pd.DataFrame,
     numerical_features: List[str],
@@ -195,24 +197,22 @@ def corr_heatmap_viz(
     title: Optional[str] = None, 
     ax: Optional[plt.Axes] = None
 ):
+    """
+    Plots a correlation heatmap for the specified numerical features.
+    """
+    
     # Handle dataframe errors
-    df = _handle_dataframe_erros(df[numerical_features])
+    df = _handle_dataframe_errors(df[numerical_features])
 
     # Validate method
     if method not in ['pearson', 'spearman']:
         raise ValueError("Method must be either 'pearson' or 'spearman'.")
+        
+    # Calculate correlation table
     corr = df.corr(method=method)
-
-    # Create mask if specified
-    if mask is not None:
-        if mask == 'upper':
-             mask_array = np.triu(np.ones_like(corr, dtype=bool))
-        elif mask == 'lower':
-            mask_array = np.tril(np.ones_like(corr, dtype=bool))
-        else:
-            raise ValueError("Mask must be either 'upper', 'lower', or None")
-    else:
-        mask_array = None
+    
+    # Apply mask
+    mask_array = _apply_mask_heatmap(corr, mask)
         
     # Set default colormap if none is provided
     colors = ["#FF0000", "#FFFF00", "#00FF00"]
@@ -224,7 +224,6 @@ def corr_heatmap_viz(
 
     # Set title
     ax.set_title(title or f'{method.capitalize()} Correlation Heatmap')
-    
     plt.show()
     
 def crosstab_heatmap_viz(
@@ -398,5 +397,26 @@ def feature_transform_viz(
         
     return None
     
-def _hide_current_axis():
-    plt.gca().set_visible(False)
+def _apply_mask_pairplot(pairplot, mask):
+    # Apply the mask to the pairplot
+    if mask == 'upper':
+        for i in range(len(pairplot.axes)):
+            for j in range(i + 1, len(pairplot.axes)):
+                pairplot.axes[i, j].set_visible(False)
+    elif mask == 'lower':
+        for i in range(len(pairplot.axes)):
+            for j in range(i):
+                pairplot.axes[i, j].set_visible(False)
+    elif mask is not None:
+        raise ValueError("Invalid mask option. Choose from 'upper', 'lower', or None.")
+
+def _apply_mask_heatmap(corr, mask):
+    # Apply the mask for heatmap
+    if mask == 'upper':
+        return np.triu(np.ones_like(corr, dtype=bool))
+    elif mask == 'lower':
+        return np.tril(np.ones_like(corr, dtype=bool))
+    elif mask is None:
+        return None
+    else:
+        raise ValueError("Invalid mask option. Choose from 'upper', 'lower', or None.")
