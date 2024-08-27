@@ -13,7 +13,10 @@ setup(
     install_requires=[
         'numpy',
         'pandas',
+        'matplotlib',
+        'seaborn',
         'scikit-learn',
+        'scipy'
     ],
     classifiers=[
         'Development Status :: 3 - Alpha',
