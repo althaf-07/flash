@@ -296,55 +296,53 @@ def crosstab_heatmap_viz(
     # Adjust layout
     plt.tight_layout()
     plt.show()
-    
+
 def violin_point_viz(
     df: pd.DataFrame,
     numerical_features: Union[List[str], str],
     categorical_features: Union[str, List[str]], 
     figsize: Optional[Tuple[int, int]] = None,
-    mean_color: Optional[str] = 'blue', 
-    median_color: Optional[str] = 'red'
+    grid: bool = True,
+    mean_color: str = 'blue', 
+    median_color: str = 'red'
 ):
+    def _plot(num, cat, ax):
+        sns.violinplot(data=df, x=cat, y=num, hue=cat, ax=ax[0], legend=False)
+        ax[0].set_title(f'Violinplot of {num} by {cat}')
+        
+        sns.pointplot(data=df, x=cat, y=num, errorbar=None, color=mean_color, ax=ax[1], 
+                      label='Mean')
+        sns.pointplot(x=cat, y=num, errorbar=None, color=median_color, 
+                      estimator='median', data=df, ax=ax[1], label='Median')
+        ax[1].set_title(f'Pointplot of {num} by {cat}')
+
     # Check if inputs are valid
     if isinstance(numerical_features, list) and isinstance(categorical_features, str):
-        if not all(col in df.columns for col in numerical_features):
-            raise ValueError("One or more numerical features are not in the DataFrame.")
-        if categorical_features not in df.columns:
-            raise ValueError("Categorical feature is not in the DataFrame.")
-        
         n_features = len(numerical_features)
         figsize = figsize or (13, n_features * 4)
-        fig, axs = plt.subplots(n_features, 2, figsize=figsize, constrained_layout=True)
+        fig, axs = plt.subplots(n_features, 2, figsize=figsize)
         
         for i, num in enumerate(numerical_features):
             _plot(num, categorical_features, axs[i])
     
     elif isinstance(categorical_features, list) and isinstance(numerical_features, str):
-        if not all(col in df.columns for col in categorical_features):
-            raise ValueError("One or more categorical features are not in the DataFrame.")
-        if numerical_features not in df.columns:
-            raise ValueError("Numerical feature is not in the DataFrame.")
-        
         n_features = len(categorical_features)
         figsize = figsize or (13, n_features * 4)
-        fig, axs = plt.subplots(n_features, 2, figsize=figsize, constrained_layout=True)
+        fig, axs = plt.subplots(n_features, 2, figsize=figsize)
         
         for i, cat in enumerate(categorical_features):
             _plot(numerical_features, cat, axs[i])
     else:
         raise TypeError("If numerical_features is a list, categorical_features must be a string. And vice versa.")
     
+    if grid:
+        for i in range(n_features):
+            axs[i, 0].grid(True)
+            axs[i, 1].grid(True)
+
+    # Adjust layout
+    plt.tight_layout()
     plt.show()
-    
-    def _plot(num, cat, ax):
-        sns.violinplot(x=cat, y=num, hue=cat, data=df, ax=ax[0])
-        ax[0].set_title(f'Violinplot of {num} by {cat}')
-        
-        sns.pointplot(x=cat, y=num, errorbar=None, color=mean_color, data=df, ax=ax[1], 
-                      label='Mean')
-        sns.pointplot(x=cat, y=num, errorbar=None, color=median_color, 
-                      estimator='median', data=df, ax=ax[1], label='Median')
-        ax[1].set_title(f'Pointplot of {num} by {cat}')
         
 def feature_transform_viz(
         df: pd.DataFrame, 
