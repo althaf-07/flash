@@ -191,39 +191,50 @@ def pair_viz(
 def corr_heatmap_viz(
     df: pd.DataFrame,
     numerical_features: List[str],
-    method: Literal['pearson', 'spearman'] = 'pearson',
+    figsize: Optional[Tuple[int, int]] = (13, 5),
+    annot: bool = True,
+    title: Optional[str] = None,
     cmap: Optional[str] = None,
-    mask: Optional[Literal['upper', 'lower', None]] = 'upper',  
-    title: Optional[str] = None, 
-    ax: Optional[plt.Axes] = None
+    cbar: bool = True,
+    mask: Literal['upper', 'lower', None] = 'upper',
+    mask_main_diagonal: Optional[bool] = True
 ):
     """
     Plots a correlation heatmap for the specified numerical features.
     """
-    
+
     # Handle dataframe errors
     df = _handle_dataframe_errors(df[numerical_features])
 
-    # Validate method
-    if method not in ['pearson', 'spearman']:
-        raise ValueError("Method must be either 'pearson' or 'spearman'.")
-        
-    # Calculate correlation table
-    corr = df.corr(method=method)
-    
-    # Apply mask
-    mask_array = _apply_mask_heatmap(corr, mask)
-        
     # Set default colormap if none is provided
-    colors = ["#FF0000", "#FFFF00", "#00FF00"]
-    cmap = cmap or mcolors.LinearSegmentedColormap.from_list("custom_cmap", colors)
+    if cmap is None:
+        colors = ["#FF0000", "#FFFF00", "#00FF00"]
+        cmap = mcolors.LinearSegmentedColormap.from_list("custom_cmap", colors)
 
-    # Plot heatmap
-    ax = ax or plt.gca()
-    sns.heatmap(corr, mask=mask_array, annot=True, cmap=cmap, ax=ax, cbar=False)
+    # Create subplots
+    if cbar:
+        fig, axs = plt.subplots(1, 3, figsize=figsize, gridspec_kw={'width_ratios': [1, 1, 0.015]})
+    else:
+        fig, axs = plt.subplots(1, 2, figsize=figsize)
 
-    # Set title
-    ax.set_title(title or f'{method.capitalize()} Correlation Heatmap')
+    for i, method in enumerate(['pearson', 'spearman']):
+        # Calculate correlation table
+        corr = df.corr(method=method)
+
+        # Apply mask
+        mask_array = _apply_mask_heatmap(corr, mask, mask_main_diagonal)
+
+        # Plot heatmap
+        sns.heatmap(corr, mask=mask_array, annot=annot, cmap=cmap, ax=axs[i], cbar=False)
+
+        # Set title
+        axs[i].set_title(title or f'{method.capitalize()} Correlation Heatmap')
+
+    if cbar:
+        fig.colorbar(axs[0].collections[0], cax=axs[-1])
+
+    # Adjust layout to prevent overlapping
+    plt.tight_layout()
     plt.show()
     
 def crosstab_heatmap_viz(
@@ -410,13 +421,19 @@ def _apply_mask_pairplot(pairplot, mask):
     elif mask is not None:
         raise ValueError("Invalid mask option. Choose from 'upper', 'lower', or None.")
 
-def _apply_mask_heatmap(corr, mask):
+def _apply_mask_heatmap(corr, mask, mask_main_diagonal):
     # Apply the mask for heatmap
-    if mask == 'upper':
-        return np.triu(np.ones_like(corr, dtype=bool))
-    elif mask == 'lower':
-        return np.tril(np.ones_like(corr, dtype=bool))
-    elif mask is None:
+    if mask is None:
         return None
+    elif mask == 'upper':
+        mask_array = np.triu(np.ones_like(corr, dtype=bool))
+    elif mask == 'lower':
+        mask_array = np.tril(np.ones_like(corr, dtype=bool))
     else:
         raise ValueError("Invalid mask option. Choose from 'upper', 'lower', or None.")
+
+    if mask_main_diagonal not in [True, False]:
+        raise ValueError("mask_main_diagonal must be either True or False")
+
+    np.fill_diagonal(mask_array, not mask_main_diagonal)
+    return mask_array
