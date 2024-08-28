@@ -347,8 +347,8 @@ def violin_point_viz(
 def feature_transform_viz(
         df: pd.DataFrame, 
         numerical_features: List[str], 
-        result: Optional[Literal['data', 'hist', 'qq']] = None, 
-        figsize: Optional[Tuple[int, int]] = (12, 8)
+        result: Optional[Literal['data', 'hist', 'qq']] = 'hist', 
+        figsize: Optional[Tuple[int, int]] = None
 ) -> Optional[Dict[str, pd.DataFrame]]:
     df = _handle_dataframe_errors(df[numerical_features])
     epsilon = 1e-10
@@ -371,6 +371,7 @@ def feature_transform_viz(
         return transformed_data
 
     def _plot_histograms():
+        figsize = figsize or (26, len(numerical_features)*3 + 1)
         fig, axs = plt.subplots(len(numerical_features), len(transformers) + 1, figsize=figsize)
         for i, feature in enumerate(numerical_features):
             sns.histplot(df[feature], kde=True, ax=axs[i, 0])
@@ -382,6 +383,7 @@ def feature_transform_viz(
         _finalize_plot(axs)
 
     def _plot_qq_plots():
+        figsize = figsize or (26, len(numerical_features)*3 + 1)
         fig, axs = plt.subplots(len(numerical_features), len(transformers) + 1, figsize=figsize)
         for i, feature in enumerate(numerical_features):
             stats.probplot(df[feature], dist="norm", plot=axs[i, 0])
