@@ -243,9 +243,14 @@ def crosstab_heatmap_viz(
     reference_feature: Optional[str] = None,
     cmap: Optional[str] = None,
     figsize: Optional[Tuple[int, int]] = None,
-    annot: Optional[bool] = True,
-    cbar: Optional[bool] = False
+    annot: bool = True,
+    cbar: bool = False
 ):
+    def _plot(ax, table, title):
+        sns.heatmap(table, annot=annot, cmap=cmap, cbar=cbar, fmt='0.2f',
+                    xticklabels=True, yticklabels=True, ax=ax)
+        ax.set_title(title)
+
     # Handle dataframe errors
     df = _handle_dataframe_errors(df)
 
@@ -254,10 +259,14 @@ def crosstab_heatmap_viz(
     cmap = cmap or mcolors.LinearSegmentedColormap.from_list("custom_cmap", colors)  
 
     n_features = len(categorical_features)
-    n_plots = n_features * (n_features - 1) // 2 if reference_feature is None else n_features
+
+    if reference_feature is None:
+        n_plots = n_features * (n_features - 1) // 2
+    else:
+        n_plots = n_features
 
     # Automatically adjust figure size if not provided
-    figsize = figsize or (13, n_plots * 5)
+    figsize = figsize or (12, n_plots * 3)
     fig, axs = plt.subplots(n_plots, 2, figsize=figsize)
     axs = axs.reshape(-1, 2)  # Flatten the array of subplots
 
@@ -287,11 +296,6 @@ def crosstab_heatmap_viz(
     # Adjust layout
     plt.tight_layout()
     plt.show()
-    
-    def _plot(ax, table, title):
-        sns.heatmap(table, annot=annot, cmap=cmap, cbar=cbar, fmt='0.2f',
-                    xticklabels=True, yticklabels=True, ax=ax)
-        ax.set_title(title)
     
 def violin_point_viz(
     df: pd.DataFrame,
