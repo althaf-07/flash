@@ -347,11 +347,14 @@ def violin_point_viz(
 def feature_transform_viz(
         df: pd.DataFrame, 
         numerical_features: List[str], 
-        result: Optional[Literal['data', 'hist', 'qq']] = 'hist', 
+        result: Literal['data', 'hist', 'qq'] = 'hist', 
         figsize: Optional[Tuple[int, int]] = None
 ) -> Optional[Dict[str, pd.DataFrame]]:
-    df = _handle_dataframe_errors(df[numerical_features])
+    if result not in ['data', 'hist', 'qq']:
+        raise ValueError(f"Invalid result value: {result}. Choose from 'data', 'hist', or 'qq'.") 
+
     epsilon = 1e-10
+    df = _handle_dataframe_errors(df[numerical_features])
 
     transformers = {
         'Log': FunctionTransformer(func=lambda X: np.log(X + epsilon), validate=False),
@@ -367,12 +370,7 @@ def feature_transform_viz(
         for name, transformer in transformers.items()
     }
 
-    if result == 'data':
-        return transformed_data
-
-    def _plot_histograms():
-        figsize = figsize or (26, len(numerical_features)*3 + 1)
-        fig, axs = plt.subplots(len(numerical_features), len(transformers) + 1, figsize=figsize)
+    def _plot_histograms(axs: np.ndarray):
         for i, feature in enumerate(numerical_features):
             sns.histplot(df[feature], kde=True, ax=axs[i, 0])
             axs[i, 0].set_title(f'Original {feature}')
@@ -382,9 +380,7 @@ def feature_transform_viz(
                 axs[i, j + 1].set_title(f'{name} {feature}')
         _finalize_plot(axs)
 
-    def _plot_qq_plots():
-        figsize = figsize or (26, len(numerical_features)*3 + 1)
-        fig, axs = plt.subplots(len(numerical_features), len(transformers) + 1, figsize=figsize)
+    def _plot_qq_plots(axs: np.ndarray):
         for i, feature in enumerate(numerical_features):
             stats.probplot(df[feature], dist="norm", plot=axs[i, 0])
             axs[i, 0].set_title(f'Original {feature}')
@@ -396,21 +392,24 @@ def feature_transform_viz(
                 axs[i, j + 1].get_lines()[1].set_color('red')  # Reference line
         _finalize_plot(axs)
 
-    def _finalize_plot(axs):
+    def _finalize_plot(axs: np.ndarray):
         for ax in axs.flatten():
             ax.set_xlabel('')
             ax.set_ylabel('')
         plt.tight_layout()
         plt.show()
 
-    if result == 'hist':
-        _plot_histograms()
-    elif result == 'qq':
-        _plot_qq_plots()
+    # Select plotting function based on 'result' parameter
+    if result == 'data':
+        return transformed_data
     else:
-        raise ValueError(f"Invalid result type '{result}'. Choose from 'data', 'hist', or 'qq'.")
+        figsize = figsize or (26, len(numerical_features) * 3 + 1)
+        fig, axs = plt.subplots(len(numerical_features), len(transformers) + 1, figsize=figsize)
         
-    return None
+        if result == 'hist':
+            _plot_histograms(axs)
+        elif result == 'qq':
+            _plot_qq_plots(axs)
     
 def _apply_mask_pairplot(pairplot, mask):
     # Apply the mask to the pairplot
