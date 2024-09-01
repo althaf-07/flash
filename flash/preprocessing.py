@@ -46,26 +46,6 @@ def extract_features(
         other_features = [col for col in df.columns if col not in set(numerical_features + categorical_features)]
         return numerical_features, categorical_features, other_features
         
-def find_outliers(
-    df: pd.DataFrame,  
-    features_with_outliers: List[str]
-) -> pd.DataFrame:
-    df = _handle_dataframe_errors(df[features_with_outliers])
-    outlier_df = pd.DataFrame()
-    for feature in features_with_outliers:
-        Q1 = df[feature].quantile(0.25)
-        Q3 = df[feature].quantile(0.75)
-        IQR = Q3 - Q1
-        lower_bound = Q1 - 1.5 * IQR
-        upper_bound = Q3 + 1.5 * IQR
-
-        outliers = df[feature][(df[feature] < lower_bound) | (df[feature] > upper_bound)]
-
-        # Add outliers to the DataFrame if any exist
-        if not outliers.empty:
-            outlier_df[feature] = outliers.sort_values().reset_index(drop=True)
-    return outlier_df
-    
 def calc_na_values(
     df: pd.DataFrame, 
     features: List[str], 
