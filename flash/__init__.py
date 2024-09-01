@@ -1,10 +1,10 @@
 # Importing key functions from modules to make them accessible at the package level
 from .analysis import (
     stats_moments, hist_box_viz, nan_value_viz, count_viz, pair_viz, corr_heatmap_viz, 
-    crosstab_heatmap_viz, violin_point_viz, feature_transform_viz
+    crosstab_heatmap_viz, feature_transform_viz
     )
 from .preprocessing import (
-    extract_features, find_outliers, calc_na_values
+    extract_features, calc_na_values
     )
 
 # Metadata
