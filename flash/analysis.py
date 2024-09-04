@@ -294,52 +294,97 @@ def crosstab_heatmap_viz(
                 plt.show()
                 print("-" * 141)
 
-def violin_point_viz(
+def num_cat_viz(
     df: pd.DataFrame,
     numerical_features: Union[List[str], str],
-    categorical_features: Union[str, List[str]], 
+    categorical_features: Union[str, List[str]],
+    kind: Literal['box', 'kde', 'point'] = 'box',
+    col_wrap: int = 2,
     figsize: Optional[Tuple[int, int]] = None,
-    grid: bool = True,
-    mean_color: str = 'blue', 
-    median_color: str = 'red'
+    grid: bool = True
 ):
-    def _plot(num, cat, ax):
-        sns.violinplot(data=df, x=cat, y=num, hue=cat, ax=ax[0], legend=False)
-        ax[0].set_title(f'Violinplot of {num} by {cat}')
-        
-        sns.pointplot(data=df, x=cat, y=num, errorbar=None, color=mean_color, ax=ax[1], 
-                      label='Mean')
-        sns.pointplot(x=cat, y=num, errorbar=None, color=median_color, 
-                      estimator='median', data=df, ax=ax[1], label='Median')
-        ax[1].set_title(f'Pointplot of {num} by {cat}')
+    def _setup_fig_axes(n_features, col_wrap, figsize):
+        """Set up figure and axes."""
+        n_rows = int(np.ceil(n_features / col_wrap))
+        figsize = figsize or (col_wrap * 6, n_rows * 4)
+        fig, axs = plt.subplots(n_rows, col_wrap, figsize=figsize)
+        axs = axs.flatten() if n_rows > 1 else [axs]
+        # Turn off unused subplots
+        for ax in axs[n_features:]:
+            fig.delaxes(ax)
+        return fig, axs
 
-    # Check if inputs are valid
-    if isinstance(numerical_features, list) and isinstance(categorical_features, str):
-        n_features = len(numerical_features)
-        figsize = figsize or (13, n_features * 4)
-        fig, axs = plt.subplots(n_features, 2, figsize=figsize)
-        
-        for i, num in enumerate(numerical_features):
-            _plot(num, categorical_features, axs[i])
-    
-    elif isinstance(categorical_features, list) and isinstance(numerical_features, str):
-        n_features = len(categorical_features)
-        figsize = figsize or (13, n_features * 4)
-        fig, axs = plt.subplots(n_features, 2, figsize=figsize)
-        
-        for i, cat in enumerate(categorical_features):
-            _plot(numerical_features, cat, axs[i])
+    def _apply_grid(ax):
+        """Apply grid lines to the plots."""
+        if grid:
+            if kind == 'box':
+                for a in ax:
+                    a.yaxis.grid(True)
+            else:
+                for a in ax:
+                    a.grid(True)
+
+    def _plot_helper(plot_func, y_var, hue_var, title_template):
+        """Helper function to plot based on the kind of plot."""
+        if isinstance(y_var, list) and isinstance(hue_var, str):
+            fig, ax = _setup_fig_axes(len(y_var), col_wrap, figsize)
+            for i, feature in enumerate(y_var):
+                plot_func(df, feature, hue_var, ax[i])
+                ax[i].set_title(title_template.format(feature, hue_var))
+                ax[i].set_ylabel('')
+
+        elif isinstance(hue_var, list) and isinstance(y_var, str):
+            fig, ax = _setup_fig_axes(len(hue_var), col_wrap, figsize)
+            for i, feature in enumerate(hue_var):
+                plot_func(df, y_var, feature, ax[i])
+                ax[i].set_title(title_template.format(y_var, feature))
+                ax[i].set_ylabel('')
+        else:
+            raise ValueError(
+                "Expected 'numerical_features' to be a list and 'categorical_features' to be a string, or "
+                "'numerical_features' to be a string and 'categorical_features' to be a list."
+            )
+            
+        _apply_grid(ax)
+        plt.tight_layout()
+        plt.show()
+
+    def _boxplot_func(df, y, hue, ax):
+        """Plot boxplot."""
+        sns.boxplot(data=df, y=y, hue=hue, ax=ax)
+
+    def _kdeplot_func(df, y, hue, ax):
+        """Plot KDE plot."""
+        for value in df[hue].unique():
+            sns.kdeplot(df[y][df[hue] == value], label=value, ax=ax, warn_singular=False)
+        ax.set_yticks([])
+        ax.legend()
+
+    def _pointplot_func(df, y, hue, ax):
+        """Plot point plot."""
+        sns.pointplot(data=df, x=hue, y=y, errorbar=None, label='Mean', ax=ax)
+        sns.pointplot(data=df, x=hue, y=y, errorbar=None, label='Median', ax=ax, estimator='median')
+
+    def _plot_box():
+        """Call boxplot plotting function."""
+        _plot_helper(_boxplot_func, numerical_features, categorical_features, '{} by {}')
+
+    def _plot_kde():
+        """Call KDE plot function."""
+        _plot_helper(_kdeplot_func, numerical_features, categorical_features, '{} by {}')
+
+    def _plot_point():
+        """Call point plot function."""
+        _plot_helper(_pointplot_func, numerical_features, categorical_features, '{} by {}')
+
+    if kind == 'box':
+        _plot_box()
+    elif kind == 'kde':
+        _plot_kde()
+    elif kind == 'point':
+        _plot_point()
     else:
-        raise TypeError("If numerical_features is a list, categorical_features must be a string. And vice versa.")
-    
-    if grid:
-        for i in range(n_features):
-            axs[i, 0].grid(True)
-            axs[i, 1].grid(True)
-
-    # Adjust layout
-    plt.tight_layout()
-    plt.show()
+        raise ValueError("Invalid 'kind' parameter. Choose from 'box', 'kde', or 'point'.")
         
 def feature_transform_viz(
         df: pd.DataFrame, 
