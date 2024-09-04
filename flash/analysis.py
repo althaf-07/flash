@@ -258,44 +258,41 @@ def crosstab_heatmap_viz(
     colors = ["#FF0000", "#FFFF00", "#00FF00"]
     cmap = cmap or mcolors.LinearSegmentedColormap.from_list("custom_cmap", colors)  
 
-    n_features = len(categorical_features)
-
-    if reference_feature is None:
-        n_plots = n_features * (n_features - 1) // 2
-    else:
-        n_plots = n_features
-
-    # Automatically adjust figure size if not provided
-    figsize = figsize or (12, n_plots * 3)
-    fig, axs = plt.subplots(n_plots, 2, figsize=figsize)
-    axs = axs.reshape(-1, 2)  # Flatten the array of subplots
-
     if reference_feature:
-        for i, feature in enumerate(categorical_features):
+        for feature in categorical_features:
+            figsize = figsize or (12, 3)
+            fig, axs = plt.subplots(1, 2, figsize=figsize)
+
             table_index = pd.crosstab(df[feature], df[reference_feature], normalize='index') * 100
             table_column = pd.crosstab(df[feature], df[reference_feature], normalize='columns') * 100
             title_index = f"{feature} vs {reference_feature} (Index Normalized)"
             title_column = f"{feature} vs {reference_feature} (Column Normalized)"
             
-            _plot(axs[i][0], table_index, title_index)
-            _plot(axs[i][1], table_column, title_column)
-    else:
-        plot_index = 0
-        for i in range(n_features):
-            for j in range(i + 1, n_features):
-                table_index = pd.crosstab(df[categorical_features[i]], df[categorical_features[j]], normalize='index') * 100
-                table_column = pd.crosstab(df[categorical_features[i]], df[categorical_features[j]], normalize='columns') * 100
-                title_index = f"{categorical_features[i]} vs {categorical_features[j]} (Index Normalized)"
-                title_column = f"{categorical_features[i]} vs {categorical_features[j]} (Column Normalized)"
-                
-                _plot(axs[plot_index][0], table_index, title_index)
-                _plot(axs[plot_index][1], table_column, title_column)
-                
-                plot_index += 1
+            _plot(axs[0], table_index, title_index)
+            _plot(axs[1], table_column, title_column)
 
-    # Adjust layout
-    plt.tight_layout()
-    plt.show()
+            # Adjust layout
+            plt.tight_layout()
+            plt.show()
+            print("-" * 141)
+    else:
+        for i, feature_i in enumerate(categorical_features):
+            for j, feature_j in enumerate(categorical_features[i+1:], start=i+1):
+                figsize = figsize or (12, 3)
+                fig, axs = plt.subplots(1, 2, figsize=figsize)
+
+                table_index = pd.crosstab(df[feature_i], df[feature_j], normalize='index') * 100
+                table_column = pd.crosstab(df[feature_i], df[feature_j], normalize='columns') * 100
+                title_index = f"{feature_i} vs {feature_j} (Index Normalized)"
+                title_column = f"{feature_i} vs {feature_j} (Column Normalized)"
+                
+                _plot(axs[0], table_index, title_index)
+                _plot(axs[1], table_column, title_column)
+
+                # Adjust layout
+                plt.tight_layout()
+                plt.show()
+                print("-" * 141)
 
 def violin_point_viz(
     df: pd.DataFrame,
