@@ -6,6 +6,11 @@ from .analysis import (
 from .preprocessing import (
     extract_features, calc_na_values
     )
+    
+from .evaluator import (
+    basic_imputer, eval_basic_imputer, advanced_numerical_imputer, eval_advanced_numerical_imputer, advanced_categorical_imputer,
+    eval_advanced_categorical_imputer
+    )
 
 # Metadata
 __version__ = '0.1.0'
