@@ -44,7 +44,7 @@ def basic_imputer(
 def eval_basic_imputer(
         series: pd.Series,y: pd.Series,
         var_type: Literal['num', 'cat'], models: Dict,
-        methods: Optional[List[Literal['mean', 'median', 'mode', 'constant', 'ffill', 'bfill']]] = None,
+        methods: Optional[List[Literal['mean', 'median', 'mode', 'ffill', 'bfill']]] = None,
         ohe: bool = True, scale: bool = False
     ) -> pd.DataFrame:
 
@@ -64,7 +64,11 @@ def eval_basic_imputer(
 
         # Apply one-hot encoding or scaling based on variable type
         if var_type == 'cat' and ohe:
-            X_imputed = pd.get_dummies(X_imputed, drop_first=True)
+            # One-Hot Encoding for categorical features
+            ohe = OneHotEncoder(sparse_output=False, drop='first')
+            encoded_data = ohe.fit_transform(X_imputed)
+            encoded_df = pd.DataFrame(encoded_data, columns=ohe.get_feature_names_out())
+            X_imputed = encoded_df
         elif var_type == 'num' and scale:
             X_imputed = pd.DataFrame(StandardScaler().fit_transform(X_imputed), columns=[series.name])
 
@@ -165,7 +169,7 @@ def eval_advanced_numerical_imputer(
 
         # Evaluate each model using cross-validation
         for model in models.values():
-            cv_score = cross_val_score(model, target_imputed_df[target], y, cv=5, scoring=scoring)
+            cv_score = cross_val_score(model, target_imputed_df[target].reshape(-1, 1), y, cv=5, scoring=scoring)
             results_dict[method].append(cv_score.mean() * 100)
 
     # Convert results to DataFrame
@@ -179,7 +183,7 @@ def advanced_categorical_imputer(
         cat_cols: List[str],
         target: str,
         clf_model: ClassifierMixin,
-        handle_other_cat_cols: Literal['drop_rows', 'drop_cols', 'ohe', 'mode']='mode'
+        handle_other_cat_cols: Literal['drop_rows', 'drop_cols', 'ohe', 'mode']='ohe'
         ) -> pd.Series:
 
     # Copying to avoid modifying original data
@@ -232,8 +236,6 @@ def advanced_categorical_imputer(
     # Inverse-transforming the predicted values
     y_pred_inverse = le.inverse_transform(y_pred)
 
-    print(y_pred_inverse)
-
     # Imputing the missing target values with the predicted ones
     df.loc[y_test.index, target] = y_pred_inverse
 
@@ -247,7 +249,7 @@ def eval_advanced_categorical_imputer(
         cat_cols: List[str],
         clf_models: Dict[str, ClassifierMixin],
         models: Dict,
-        handle_other_cat_cols: Literal['drop_rows', 'drop_cols', 'ohe', 'mode']='mode',
+        handle_other_cat_cols: Literal['drop_rows', 'drop_cols', 'ohe', 'mode']='ohe',
         scoring: str = 'accuracy'
     ) -> pd.DataFrame:
     """
