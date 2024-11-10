@@ -2,6 +2,7 @@ from typing import Optional, Dict, List, Literal
 import pandas as pd
 from sklearn.base import ClassifierMixin
 from sklearn.model_selection import cross_val_score
+from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import KNNImputer, IterativeImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 
