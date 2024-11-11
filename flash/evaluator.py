@@ -169,7 +169,7 @@ def eval_advanced_numerical_imputer(
 
         # Evaluate each model using cross-validation
         for model in models.values():
-            cv_score = cross_val_score(model, target_imputed_df[target].reshape(-1, 1), y, cv=5, scoring=scoring)
+            cv_score = cross_val_score(model, target_imputed_df[target].values.reshape(-1, 1), y, cv=5, scoring=scoring)
             results_dict[method].append(cv_score.mean() * 100)
 
     # Convert results to DataFrame
