@@ -1,29 +1,28 @@
+import os
 import pandas as pd
 
-def _handle_dataframe_errors(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Validate the input DataFrame and handle common errors.
+def export(df: pd.DataFrame, file_path: str, force_overwrite: bool = False) -> None:
+    """Exports a DataFrame to a CSV file with overwrite control.
 
     Parameters
     ----------
     df : pd.DataFrame
-        The DataFrame to validate.
+        The DataFrame to export.
+    file_path : str
+        Path where the DataFrame will be saved as a CSV file.
+    force_overwrite : bool, optional
+        Whether to overwrite the file if it exists, by default False.
 
     Raises
     ------
     TypeError
-        If the input is not a pandas DataFrame.
+        If `df` is not a pandas DataFrame.
     ValueError
-        If the DataFrame is None or empty.
+        If `file_path` already exists and `force_overwrite` is False.
     """
-    if df is None:
-        raise ValueError("The DataFrame cannot be None.")
 
-    if not isinstance(df, pd.DataFrame):
-        raise TypeError("The input must be a pandas DataFrame.")
-
-    if df.empty:
-        raise ValueError("The DataFrame cannot be empty.")
-
-    return df
+    if os.path.exists(file_path) and not force_overwrite:
+        raise FileExistsError(f"File {file_path} already exists. Set force_overwrite=True to overwrite it.")
     
+    df.to_csv(file_path, index=False)
+    print(f"Data exported to {file_path}")

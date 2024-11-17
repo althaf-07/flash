@@ -1,6 +1,5 @@
 from typing import List, Optional, Union, Literal, Tuple
 import pandas as pd
-from .utils import _handle_dataframe_errors
 
 def extract_features(
     df: pd.DataFrame,
@@ -11,9 +10,6 @@ def extract_features(
     # Validate the feature_type input
     if feature_type not in {'num', 'cat', 'others', 'all'}:
         raise ValueError("The 'feature_type' parameter must be 'num', 'cat', 'others', or 'all'.")
-
-    # Handle DataFrame errors
-    df = _handle_dataframe_errors(df)
 
     # Ensure ignore_cols is a list and drop the columns from DataFrame
     if ignore_cols:
@@ -51,7 +47,6 @@ def calc_na_values(
     features: List[str], 
     pct: bool = True
 ) -> pd.Series:
-    df = _handle_dataframe_errors(df[features])
     
     # Count of missing values in features
     missing_value_count = df.isna().sum()

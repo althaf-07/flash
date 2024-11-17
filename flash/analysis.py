@@ -7,59 +7,64 @@ from scipy import stats
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 from sklearn.preprocessing import FunctionTransformer, PowerTransformer, QuantileTransformer
-from .utils import _handle_dataframe_errors
 
-def stats_moments(
-    df: pd.DataFrame, 
-    numerical_features: List[str],
-    round_: Optional[int] = 2 
-):
-    df = _handle_dataframe_errors(df[numerical_features])
-    moments_df = pd.DataFrame(
-        [
-            {
-                'Mean': round(float(df[feature].mean()), round_),
-                'Standard deviation': round(float(df[feature].std()), round_),
-                'Skewness': round(float(df[feature].skew()), round_),
-                'Kurtosis': round(float(df[feature].kurtosis()), round_)
-            }
-            for feature in numerical_features
-        ],
-        index=numerical_features
-    )
+def stats_moments(df_num: pd.DataFrame, round_: int = 2) -> pd.DataFrame:
+    """Calculates statistical moments for numerical features.
+
+    Parameters
+    ----------
+    df_num : pd.DataFrame
+        A DataFrame containing numerical features in which to calculate statistical moments.
+    round_ : int, default=2
+        Rounds the moments' values to the nearest integer.
+
+    Returns
+    -------
+    moments_df : pd.DataFrame
+        A DataFrame containing statistical moments of numerical features. Statistical moments in columns
+        and numerical features in rows.
+    """
+
+    moments_dict = {
+        'mean': df_num.mean().round(round_),
+        'std': df_num.std().round(round_),
+        'skewness': df_num.skew().round(round_),
+        'kurtosis': df_num.kurtosis().round(round_)
+        }
+
+    moments_df = pd.DataFrame(moments_dict)
+
     return moments_df
     
 def hist_box_viz(
-    df: pd.DataFrame, 
-    numerical_features: List[str], 
-    figsize: Optional[Tuple[int, int]] = None, 
-    title: Optional[str] = None, 
-    hist_xlabel: Optional[str] = None, 
-    hist_ylabel: Optional[str] = None, 
-    box_xlabel: Optional[str] = None, 
-    box_ylabel: Optional[str] = None
-):
+        df_num: pd.DataFrame,
+        figsize: Optional[Tuple[int, int]] = None,
+        hist_xlabel: Optional[str] = None,
+        hist_ylabel: Optional[str] = None,
+        box_xlabel: Optional[str] = None,
+        box_ylabel: Optional[str] = None
+        ):
     """
     Plots histograms and boxplots for the specified numerical features.
     """
-    # Handle potential DataFrame errors
-    df = _handle_dataframe_errors(df)
     
+    num_cols = df_num.columns.tolist()
+
     # Calculate figure size if not provided
-    n_features = len(numerical_features)
+    n_features = len(num_cols)
     figsize = figsize or (13, n_features * 3 + 1)
     
     # Create subplots: one column for histograms, one for boxplots
     fig, axs = plt.subplots(n_features, 2, figsize=figsize)
 
-    for i, feature in enumerate(numerical_features):
+    for i, feature in enumerate(num_cols):
         # Plot histogram with KDE
-        sns.histplot(df[feature], kde=True, ax=axs[i, 0])
+        sns.histplot(df_num[feature], kde=True, ax=axs[i, 0])
         axs[i, 0].set(title=f'Histogram of {feature}', xlabel=hist_xlabel or '', ylabel=hist_ylabel or '')
         axs[i, 0].grid(True)
 
         # Plot boxplot
-        sns.boxplot(x=df[feature], ax=axs[i, 1])
+        sns.boxplot(x=df_num[feature], ax=axs[i, 1])
         axs[i, 1].set(title=f'Boxplot of {feature}', xlabel=box_xlabel or '', ylabel=box_ylabel or '')
         axs[i, 1].grid(True)
 
@@ -75,9 +80,7 @@ def nan_value_viz(
     """
     Plots a heatmap of missing values in the DataFrame.
     """
-    # Handle potential DataFrame errors
-    df = _handle_dataframe_errors(df)
-    
+
     # Calculate figure size if not provided
     figsize = figsize or (df.shape[1] / 4 * 5, 4)
     
@@ -101,8 +104,6 @@ def count_viz(
     """
     Plots countplots for categorical features in the DataFrame.
     """
-    # Handle potential DataFrame errors
-    df = _handle_dataframe_errors(df[categorical_features])
 
     # Validate n_cols
     if not isinstance(n_cols, int) or n_cols <= 0:
@@ -158,10 +159,7 @@ def pair_viz(
     """
     Plots a pairplot for the specified numerical features.
     """
-    
-    # Handle dataframe errors
-    df = _handle_dataframe_errors(df[numerical_features])
-    
+
     n_features = len(numerical_features)
 
     # Calculate figure size if not provided
@@ -202,9 +200,6 @@ def corr_heatmap_viz(
     """
     Plots a correlation heatmap for the specified numerical features.
     """
-
-    # Handle dataframe errors
-    df = _handle_dataframe_errors(df[numerical_features])
 
     # Set default colormap if none is provided
     if cmap is None:
@@ -250,9 +245,6 @@ def crosstab_heatmap_viz(
         sns.heatmap(table, annot=annot, cmap=cmap, cbar=cbar, fmt='0.2f',
                     xticklabels=True, yticklabels=True, ax=ax)
         ax.set_title(title)
-
-    # Handle dataframe errors
-    df = _handle_dataframe_errors(df)
 
     # Set default colormap if none is provided
     colors = ["#FF0000", "#FFFF00", "#00FF00"]
@@ -396,8 +388,6 @@ def feature_transform_viz(
         raise ValueError(f"Invalid result value: {result}. Choose from 'data', 'hist', or 'qq'.") 
 
     epsilon = 1e-10
-    df = _handle_dataframe_errors(df[numerical_features])
-
     transformers = {
         'Log': FunctionTransformer(func=lambda X: np.log(X + epsilon), validate=False),
         'Square Root': FunctionTransformer(func=lambda X: np.sqrt(X + epsilon), validate=False),
