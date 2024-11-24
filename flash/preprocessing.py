@@ -2,65 +2,86 @@ from typing import List, Optional, Union, Literal, Tuple
 import pandas as pd
 
 def extract_features(
-    df: pd.DataFrame,
-    feature_type: Literal['num', 'cat', 'others', 'all'],
-    ignore_cols: Optional[Union[str, List[str]]] = None,
-    unique_value_threshold: Optional[int] = 12
-) -> Union[List[str], Tuple[List[str]]]:
-    # Validate the feature_type input
-    if feature_type not in {'num', 'cat', 'others', 'all'}:
-        raise ValueError("The 'feature_type' parameter must be 'num', 'cat', 'others', or 'all'.")
+        df: pd.DataFrame,
+        var_type: Literal['num', 'cat', 'other', 'all'],
+        ignore_cols: Optional[List[str]] = None,
+        unique_value_threshold: int = 12
+        ) -> Union[List[str], Tuple[List[str], List[str], List[str]]]:
+        """Extracts features based on their type.
 
-    # Ensure ignore_cols is a list and drop the columns from DataFrame
-    if ignore_cols:
-        if isinstance(ignore_cols, str):
-            ignore_cols = [ignore_cols]
-        elif not isinstance(ignore_cols, list):
-            raise TypeError("ignore_cols must be a string or a list of strings.")
-        df = df.drop(columns=ignore_cols, errors='ignore')
+        Parameters
+        ----------
+        df : pd.DataFrame
+            A Pandas DataFrame.
+        var_type : {'num', 'cat', 'other', 'all'}
+            The type of the feature to extract.
+        ignore_cols : List[str], optional
+            Features to exclude from extraction.
+        unique_value_threshold : int, default=12
+            The threshold below which numerical features are considered categorical.
+            If a numerical feature has fewer unique values than this threshold,
+            it will be treated as categorical.
 
-    # Select numerical features
-    numerical_features = df.select_dtypes(include=['number']).columns.tolist()
-    
-    # Select categorical features
-    categorical_features = df.select_dtypes(include=['bool', 'object', 'category']).columns.tolist()
-    categorical_features += [col for col in numerical_features if df[col].nunique() <= unique_value_threshold]
-    
-    # Filter out real numerical features (i.e., those with more unique values than the threshold)
-    numerical_features = [col for col in numerical_features if col not in categorical_features]
+        Returns
+        -------
+        Union[List[str], Tuple[List[str], List[str], List[str]]]
+            Feature names based on the requested type.
 
-    # Return based on feature_type
-    if feature_type == 'num':
-        return numerical_features
-    elif feature_type == 'cat':
-        return categorical_features
-    elif feature_type == 'others':
-        num_cat_features = set(numerical_features + categorical_features)
-        other_features = [col for col in df.columns if col not in num_cat_features]
-        return other_features
-    elif feature_type == 'all':
-        other_features = [col for col in df.columns if col not in set(numerical_features + categorical_features)]
-        return numerical_features, categorical_features, other_features
+        Raises
+        ------
+        ValueError
+            If `var_type` is not in {'num', 'cat', 'other', 'all'}.
+        TypeError
+            If `ignore_cols` is not a list of strings.
+        """
+
+        # Validate inputs
+        if var_type not in ['num', 'cat', 'other', 'all']:
+            raise ValueError("The 'var_type' parameter must be 'num', 'cat', 'other', or 'all'.")
+        if ignore_cols and not isinstance(ignore_cols, list):
+            raise TypeError("ignore_cols must be a list of strings.")
+
+        # Prepare DataFrame
+        df = df.copy()
+        if ignore_cols:
+            df = df.drop(columns=ignore_cols)
+
+        # Identify feature types
+        num_cols = df.select_dtypes(include=['number']).columns.tolist()
+        cat_cols = df.select_dtypes(include=['bool', 'object', 'category']).columns.tolist()
+        cat_cols += [col for col in num_cols if df[col].nunique() <= unique_value_threshold]
+        num_cols = [col for col in num_cols if col not in cat_cols]
+        other_cols = [col for col in df.columns if col not in set(num_cols + cat_cols)]
+
+        # Return based on `var_type`
+        type_map = {
+            'num': num_cols,
+            'cat': cat_cols,
+            'other': other_cols,
+            'all': (num_cols, cat_cols, other_cols)
+        }
+        return type_map[var_type]
         
-def calc_na_values(
-    df: pd.DataFrame, 
-    features: List[str], 
-    pct: bool = True
-) -> pd.Series:
-    
-    # Count of missing values in features
-    missing_value_count = df.isna().sum()
+def calc_nan_values(df: pd.DataFrame, pct: bool = True) -> pd.Series:
+    """Filters out features with missing values from the DataFrame and calculates the
+    number of missing values or their percentage.
 
-    # Filter out features with no missing values
-    missing_value_count = missing_value_count[missing_value_count > 0]
+    Parameters
+    ----------
+    df : pd.DataFrame
+        A Pandas DataFrame.
+    pct : bool, default=True
+        Whether to return missing values as a percentage (True) or as absolute counts (False).
 
-    # Store features with missing values
-    features_with_missing_values = missing_value_count.index.to_list()
+    Returns
+    -------
+    pd.Series
+        A Series indexed by feature names with either the count or percentage of missing values.
+    """
 
-    if pct:
-        # Percentage of missing values in features
-        missing_value_pct = round(missing_value_count / df.shape[0] * 100, 2)
-        return pd.Series(missing_value_pct, index=features_with_missing_values)
-    else:
-        return pd.Series(missing_value_count, index=features_with_missing_values)
+    # Count the number of missing values in features with missing values
+    missing_values = df.isna().sum().loc[lambda x: x > 0]
+
+    # Return percentage or count of missing values
+    return (missing_values / df.shape[0] * 100).round(2) if pct else missing_values
   
