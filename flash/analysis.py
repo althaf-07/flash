@@ -1,5 +1,5 @@
 import math
-from typing import List, Union, Optional, Literal, Dict, Tuple
+from typing import Literal
 import numpy as np
 import pandas as pd
 import seaborn as sns
@@ -35,15 +35,15 @@ def stats_moments(df_num: pd.DataFrame, round_: int = 2) -> pd.DataFrame:
     moments_df = pd.DataFrame(moments_dict)
 
     return moments_df
-    
+
 def hist_box_viz(
         df_num: pd.DataFrame,
-        figsize: Optional[Tuple[int, int]] = None,
-        hist_xlabel: Optional[str] = None,
-        hist_ylabel: Optional[str] = None,
-        box_xlabel: Optional[str] = None,
-        box_ylabel: Optional[str] = None
-        ) -> Tuple[plt.figure, np.ndarray]:
+        figsize: tuple[int, int] | None = None,
+        hist_xlabel: str | None = None,
+        hist_ylabel: str | None = None,
+        box_xlabel: str | None = None,
+        box_ylabel: str | None = None
+        ) -> tuple[plt.Figure, plt.Axes]:
     """Plots histograms (with KDE) and boxplots for the specified numerical features.
 
     Usage (Run this in one single cell for better performance):
@@ -55,22 +55,22 @@ def hist_box_viz(
     ----------
     df_num : pd.DataFrame
         A DataFrame containing numerical features in which to plot Histograms and Boxplots.
-    figsize : Tuple[int, int], optional, default=None
+    figsize : tuple[int, int], optional, default=None
         Figure size of the plot. If None, `figsize` will be automatically 
         calculated using number of features.
-    hist_xlabel : str, optional, default=None
+    hist_xlabel : str | None, optional, default=None
         X-axis label for histograms.
-    hist_ylabel : str, optional, default=None
+    hist_ylabel : str | None, optional, default=None
         Y-axis label for histograms.
-    box_xlabel : str, optional, default=None
+    box_xlabel : str | None, optional, default=None
         X-axis label for boxplots.
-    box_ylabel : str, optional, default=None
+    box_ylabel : str | None, optional, default=None
         Y-axis label for boxplots.
 
     Returns
     -------
-    fig, axs : Tuple[plt.figure, np.ndarray]
-        The figure object and the array of axes with the plots.
+    fig, axs : tuple[plt.Figure, plt.Axes]
+        The matplotlib figure and axes objects.
     """
 
     num_cols = df_num.columns.tolist()
@@ -94,14 +94,16 @@ def hist_box_viz(
         axs[i, 1].grid(True)
 
     plt.tight_layout()
+    # Prevent the plot being displayed after returning
+    plt.close()
     return fig, axs
 
 def nan_value_viz(
         df: pd.DataFrame, 
-        figsize: Optional[Tuple[int, int]] = None, 
+        figsize: tuple[int, int] | None = None, 
         cmap: str = 'Blues', 
-        x_label_rotation: Optional[Union[int, float]] = None
-        ) -> Tuple[plt.figure, np.ndarray]:
+        x_label_rotation: int | float | None = None
+        ) -> tuple[plt.Figure, plt.Axes]:
     """Plots a heatmap of missing values in the DataFrame.
     We can use this visualization to identify whether the missing values are 
     missing at random (MAR), missing completely at random (MCAR), 
@@ -111,21 +113,21 @@ def nan_value_viz(
     ----------
     df : pd.DataFrame
         A Pandas DataFrame
-    figsize : Tuple[int, int], optional, default=None
+    figsize : Tuple[int, int] | None, optional, default=None
         Figure size of the plot. If None, `figsize` will be automatically 
-        calculated using number of features in the DataFrame.
+        calculated based on the number of features in the DataFrame.
     cmap : str, default='Blues'
         Colour map for the missing values. 
         Read https://matplotlib.org/stable/gallery/color/colormap_reference.html and
         https://matplotlib.org/stable/users/explain/colors/colormaps.html for more info.
-    x_label_rotation : Union[int, float], optional, default=None
+    x_label_rotation : int | float | None, optional, default=None
         This should be a numerical value. With this, we can control the rotation of X-axis
         labels, thus enhancing visibility.
 
     Returns
     -------
-    fig, axs : Tuple[plt.figure, np.ndarray]
-        The figure object and the array of axes with the plots.
+    fig, axs : tuple[plt.Figure, plt.Axes]
+        The matplotlib figure and axes objects.
     """
 
     # Calculate figure size if not provided
@@ -137,15 +139,17 @@ def nan_value_viz(
     
     if x_label_rotation is not None:
         ax.tick_params('x', labelrotation=x_label_rotation)
-        
+    
+    # Prevent the plot being displayed after returning
+    plt.close()
     return fig, ax
 
 def count_viz(
         df_cat: pd.DataFrame,
         n_cols: int = 3,
-        figsize: Optional[Tuple[int, int]] = None,
-        x_label_rotation: Optional[Dict[str, Union[int, float]]] = None
-        ) -> Tuple[plt.figure, np.ndarray]:
+        figsize: tuple[int, int] | None = None,
+        x_label_rotation: dict[str, int | float] | None = None
+        ) -> tuple[plt.Figure, plt.Axes]:
     """Plots countplots for categorical features in the DataFrame.
 
     Parameters
@@ -154,17 +158,17 @@ def count_viz(
         A DataFrame containing categorical features in which to plot countplots.
     n_cols : int, default=3
         The number of plots you want in a single row.
-    figsize : Tuple[int, int], optional
+    figsize : tuple[int, int] | None, optional
         Figure size for the entire figure. If None, `figsize` is automatically caluculated
         based on the number of features in DataFrame and `n_cols`.
-    x_label_rotation : Dict[str, Union[int, float]], optional
+    x_label_rotation : dict[str, int | float] | None, optional, default=None
         This dictionary should contain the features' x labels you want to rotate and the
         rotation value. If None, there will be no rotation for any of the x labels.
 
     Returns
     -------
-    fig, axs : Tuple[plt.figure, np.ndarray]
-        The figure object and the array of axes with the plots.
+    fig, axs : tuple[plt.Figure, plt.Axes]
+        The matplotlib figure and axes objects.
     """
 
     cat_features = df_cat.columns.tolist()
@@ -200,17 +204,19 @@ def count_viz(
                 title_of_ax[feature].tick_params('x', labelrotation=rotation)
 
     plt.tight_layout()
+    # Prevent the plot being displayed after returning
+    plt.close()
     return fig, axs
 
 def pair_viz(
         df_num: pd.DataFrame,
         kind: Literal['scatter', 'kde', 'hist', 'reg'] = 'scatter',
-        diag_kind: Optional[Literal['auto', 'hist', 'kde']] = 'kde',
-        mask: Optional[Literal['upper', 'lower']] = 'upper',
-        figsize: Optional[Tuple[int, int]] = None,
-        plot_kws: Optional[Dict[str, any]] = None,
-        diag_kws: Optional[Dict[str, any]] = None,
-        grid_kws: Optional[Dict[str, any]] = None
+        diag_kind: Literal['auto', 'hist', 'kde'] | None = 'kde',
+        mask: Literal['upper', 'lower'] | None = 'upper',
+        figsize: tuple[int, int] | None = None,
+        plot_kws: dict[str, any] | None = None,
+        diag_kws: dict[str, any] | None = None,
+        grid_kws: dict[str, any] | None = None
         ) -> sns.PairGrid:
         """Plots a pairplot for numerical features.
 
@@ -223,18 +229,18 @@ def pair_viz(
             A Pandas DataFrame containing numerical features.
         kind : {'scatter', 'kde', 'hist', 'reg'}, default='scatter'
             The type of the pairplot to plot.
-        diag_kind : {'auto', 'hist', 'kde'}, optional, default='kde'
-            Kind of plot for the diagonal subplots. If ‘auto’, choose based on whether or 
+        diag_kind : {'auto', 'hist', 'kde'} | None, optional, default='kde'
+            Kind of plot for the diagonal subplots. If 'auto', choose based on whether or 
             not hue is used.
-        mask : {'upper', 'lower'}, optional, default='upper'
+        mask : {'upper', 'lower'} | None, optional, default='upper'
             Mask out the upper or lower triangle of the plot grid.
-        figsize : Tuple[int, int], optional
+        figsize : tuple[int, int] | None, optional, default=None
             The figure size of the pairplot.
-        plot_kws : Dict, optional
+        plot_kws : dict[str, any] | None, optional, default=None
             Arguments passed to the bivariate plotting function.
-        diag_kws : Dict, optional
+        diag_kws : dict[str, any] | None, optional, default=None
             Arguments passed to the univariate plotting function.
-        grid_kws : Dict, optional
+        grid_kws : dict[str, any] | None, optional, default=None
             Arguments passed to the PairGrid constructor.
 
         Returns
@@ -294,61 +300,92 @@ def pair_viz(
                     grid.axes[i, j].set_visible(False)
 
         plt.tight_layout()
+        # Prevent the plot being displayed after returning
+        plt.close()
         return grid
 
 def corr_heatmap_viz(
-    df: pd.DataFrame,
-    numerical_features: List[str],
-    figsize: Optional[Tuple[int, int]] = (13, 5),
-    annot: bool = True,
-    title: Optional[str] = None,
-    cmap: Optional[str] = None,
-    cbar: bool = True,
-    mask: Literal['upper', 'lower', None] = 'upper',
-    mask_main_diagonal: Optional[bool] = True
-):
-    """
-    Plots a correlation heatmap for the specified numerical features.
-    """
+        df_num: pd.DataFrame,
+        method: Literal['pearson', 'kendall', 'spearman'] = 'pearson',
+        mask: Literal['upper', 'lower'] | None = 'upper',
+        figsize: tuple[int, int] | None = None,
+        heatmap_kws: dict[str, any] | None = None,
+        ) -> tuple[plt.Figure, plt.Axes]:
+        """Plots a correlation heatmap for the specified numerical features.
 
-    # Set default colormap if none is provided
-    if cmap is None:
-        colors = ["#FF0000", "#FFFF00", "#00FF00"]
-        cmap = mcolors.LinearSegmentedColormap.from_list("custom_cmap", colors)
+        df_num : pd.DataFrame
+            A Pandas DataFrame containing only numerical features.
+        method : {'person', 'kendall', 'spearman'}, default='pearson'
+            Method of correlation.
+        mask : {'upper', 'lower'} | None, optional, default='upper'
+            The way you want to mask the duplicate correlations.
+        figsize : tuple[int, int] | None, optional, default=None
+            The figure size for the plot.
+        heatmap_kws : dict[str, any] | None, optional, default=None
+            Keyword arguments for the heatmap plot.
+            See https://seaborn.pydata.org/generated/seaborn.heatmap.html for more info.
 
-    # Create subplots
-    if cbar:
-        fig, axs = plt.subplots(1, 3, figsize=figsize, gridspec_kw={'width_ratios': [1, 1, 0.015]})
-    else:
-        fig, axs = plt.subplots(1, 2, figsize=figsize)
+        Raises
+        ------
+        ValueError
+            If mask is not either of 'upper', 'lower', or None.
 
-    for i, method in enumerate(['pearson', 'spearman']):
+        Returns
+        -------
+        fig, ax: tuple[plt.Figure, plt.Axes]
+            The figure object and the axis for the heatmap.
+        """
+
+        # Validate inputs
+        if mask not in ['upper', 'lower', None]:
+            raise ValueError("Invalid mask option. Choose from 'upper', 'lower', or None.")
+        # Set default values for heatmap arguments if not provided
+        if heatmap_kws is None:
+            colors = ["#FF0000", "#FFFF00", "#00FF00"]
+            heatmap_kws = {
+                "annot": True,
+                "cmap": mcolors.LinearSegmentedColormap.from_list("custom_cmap", colors),
+                "cbar": True,
+                "xticklabels": True,
+                "yticklabels": True,
+                "fmt": '0.2f'
+            }
+
         # Calculate correlation table
-        corr = df.corr(method=method)
+        corr = df_num.corr(method=method)
 
         # Apply mask
-        mask_array = _apply_mask_heatmap(corr, mask, mask_main_diagonal)
+        mask_array = None
+        if mask:
+            if mask == 'upper':
+                mask_array = np.triu(np.ones_like(corr, dtype=bool))
+            else:
+                mask_array = np.tril(np.ones_like(corr, dtype=bool))
+            np.fill_diagonal(mask_array, False)
+
+        # Default figsize
+        if figsize is None:
+            aspect_ratio = 1.4
+            width = max(5, min(20, df_num.shape[1] + 2)) # Cap width between 5 and 20
+            height = width / aspect_ratio
+            figsize = (width, height)
 
         # Plot heatmap
-        sns.heatmap(corr, mask=mask_array, annot=annot, cmap=cmap, ax=axs[i], cbar=False)
+        fig, ax = plt.subplots(figsize=figsize)
+        sns.heatmap(corr, mask=mask_array, ax=ax, **heatmap_kws)
+        ax.set_title(f'{method.capitalize()} Correlation Heatmap')
+        plt.tight_layout()
+        plt.close() # Prevent the plot being displayed after returning
 
-        # Set title
-        axs[i].set_title(title or f'{method.capitalize()} Correlation Heatmap')
-
-    if cbar:
-        fig.colorbar(axs[0].collections[0], cax=axs[-1])
-
-    # Adjust layout to prevent overlapping
-    plt.tight_layout()
-    plt.show()
+        return fig, ax
     
 def crosstab_heatmap_viz(
         df_cat: pd.DataFrame,
         normalize: Literal['index', 'columns', 'both'] = 'index',
-        ref_cols: Optional[List[str]] = None,
-        figsize: Optional[Tuple[int, int]] = None,
-        heatmap_kws: Optional[Dict[str, any]] = None
-        ):
+        ref_cols: list[str] | None = None,
+        figsize: tuple[int, int] | None = None,
+        heatmap_kws: dict[str, any] | None = None
+        ) -> None:
     """Plots heatmap of crosstab for categorical features.
 
     Parameters
@@ -357,12 +394,12 @@ def crosstab_heatmap_viz(
         A Pandas DataFrame containing categorical features.
     normalize : {'index', 'columns', 'both'}, default='index'
         The way you want to normalize the crosstab for categorical features.
-    ref_col : List[str], optional
+    ref_col : list[str] | None, optional, default=None
         The columns to compare the other categorical features to. Defaults to all columns.
-    figsize : Tuple[int, int], optional
+    figsize : tuple[int, int] | None, optional, default=None
         The figure size for the plots. If None, it will be calculated based on the number
         of unique values in features of the DataFrame.
-    heatmap_kws : Dict[str, any], optional
+    heatmap_kws : dict[str, any] | None, optional, default=None
         Keyword arguments for the heatmap. If None, defaults are used. See Seaborn docs
         for more options: https://seaborn.pydata.org/generated/seaborn.heatmap.html.
 
@@ -597,20 +634,3 @@ def feature_transform_viz(
             _plot_histograms(axs)
         elif result == 'qq':
             _plot_qq_plots(axs)
-
-def _apply_mask_heatmap(corr, mask, mask_main_diagonal):
-    # Apply the mask for heatmap
-    if mask is None:
-        return None
-    elif mask == 'upper':
-        mask_array = np.triu(np.ones_like(corr, dtype=bool))
-    elif mask == 'lower':
-        mask_array = np.tril(np.ones_like(corr, dtype=bool))
-    else:
-        raise ValueError("Invalid mask option. Choose from 'upper', 'lower', or None.")
-
-    if mask_main_diagonal not in [True, False]:
-        raise ValueError("mask_main_diagonal must be either True or False")
-
-    np.fill_diagonal(mask_array, not mask_main_diagonal)
-    return mask_array

@@ -1,4 +1,4 @@
-from typing import Optional, Dict, List, Literal
+from typing import Literal
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import cross_val_score
@@ -12,8 +12,8 @@ from sklearn.preprocessing import (
 def basic_imputer(
         x: pd.Series,
         var_type: Literal['num', 'cat'],
-        method: Optional[Literal['mean', 'median', 'mode', 'ffill', 'bfill']] = None,
-        fallback: Optional[Literal['mean', 'median', 'mode', 'ffill', 'bfill']] = None
+        method: Literal['mean', 'median', 'mode', 'ffill', 'bfill'] | None = None,
+        fallback: Literal['mean', 'median', 'mode', 'ffill', 'bfill'] | None = None
     ) -> pd.Series:
     """Imputes missing values using basic statistical measures.
 
@@ -23,9 +23,9 @@ def basic_imputer(
         The Series in which to impute missing values.
     var_type : {'num', 'cat'}
         Variable type of the Series. 'num' for numerical, 'cat' for categorical.
-    method : {'mean', 'median', 'mode', 'ffill', 'bfill'}, optional
+    method : {'mean', 'median', 'mode', 'ffill', 'bfill'} | None, optional, default=None
         The method to impute missing values. If None, the default method for the given `var_type` is used.
-    fallback : {'mean', 'median', 'mode', 'ffill', 'bfill'}, optional
+    fallback : {'mean', 'median', 'mode', 'ffill', 'bfill'} | None, optional, default=None
         The fallback imputation strategy if the `method` fails to impute all missing values. If None, the default fallback for the given `var_type` is used.
 
     Returns
@@ -77,8 +77,8 @@ def basic_imputer(
 
 def advanced_numerical_imputer(
         df: pd.DataFrame,
-        num_cols: List[str],
-        cat_cols: List[str],
+        num_cols: list[str],
+        cat_cols: list[str] | None = None,
         handle_cat_cols: Literal['ohe', 'mode', 'drop_rows', 'drop_cols'] = 'ohe',
         method: Literal['knn', 'iterative'] = 'knn'
     ) -> pd.DataFrame:
@@ -93,9 +93,9 @@ def advanced_numerical_imputer(
     df : pd.DataFrame
         The DataFrame containing both numerical and categorical features. Features in `num_cols` and `cat_cols` 
         must be present in the DataFrame.
-    num_cols : List[str]
+    num_cols : list[str]
         List of numerical features in the DataFrame.
-    cat_cols : List[str]
+    cat_cols : list[str] | None, optional, default=None
         List of categorical features in the DataFrame.
     handle_cat_cols : {'ohe', 'mode', 'drop_rows', 'drop_cols'}, default='ohe'
         The strategy to handle missing values in categorical columns:
@@ -166,7 +166,7 @@ def advanced_numerical_imputer(
 
 def advanced_categorical_imputer(
         df: pd.DataFrame,
-        cat_cols: List[str],
+        cat_cols: list[str],
         target: str,
         clf_model: ClassifierMixin,
         handle_other_cat_cols: Literal['ohe', 'mode', 'drop_rows', 'drop_cols'] = 'ohe'
@@ -229,9 +229,9 @@ def advanced_categorical_imputer(
     return df[target]
 
 def imputer_evaluator(
-        X_imputed: Dict[str, pd.DataFrame],
+        X_imputed: dict[str, pd.DataFrame],
         y: pd.Series,
-        models: Dict[str, BaseEstimator],
+        models: dict[str, BaseEstimator],
         scale: bool = False,
         ohe: bool = False,
         scoring: str = 'accuracy'
@@ -240,11 +240,11 @@ def imputer_evaluator(
 
     Parameters
     ----------
-    X_imputed : Dict[str, pd.DataFrame]
+    X_imputed : dict[str, pd.DataFrame]
         A dictionary containing custom names for Dataframes and DataFrames.
     y : pd.Series
         The target feature containing labels. This should be label encoded.
-    models : Dict[str, BaseEstimator]
+    models : dict[str, BaseEstimator]
         The dictionary of models to evaluate the imputation strategies.
     scale : bool, default=False
         To control whether to scale the values using `StandardScaler` from sklearn or not.
@@ -447,10 +447,10 @@ def handle_outliers(series: pd.Series, method: Literal['iqr', 'robust_model'] = 
 def eval_outlier_method(
         series: pd.Series,
         y: pd.Series,
-        methods: List[Literal['iqr', 'robust_model', 'log', 'yeo-johnson', 'standardize', 'min-max',
+        methods: list[Literal['iqr', 'robust_model', 'log', 'yeo-johnson', 'standardize', 'min-max',
                              'sqrt', 'square', 'reciprocal', 'quantile']],
 
-        models: Dict[str, BaseEstimator],
+        models: dict[str, BaseEstimator],
         scoring: str = 'accuracy'
         ) -> pd.DataFrame:
     """
