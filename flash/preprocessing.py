@@ -1,12 +1,12 @@
-from typing import List, Optional, Union, Literal, Tuple
+from typing import Literal
 import pandas as pd
 
 def extract_features(
         df: pd.DataFrame,
         var_type: Literal['num', 'cat', 'other', 'all'],
-        ignore_cols: Optional[List[str]] = None,
+        ignore_cols: list[str] | None = None,
         unique_value_threshold: int = 12
-        ) -> Union[List[str], Tuple[List[str], List[str], List[str]]]:
+        ) -> list[str] | tuple[list[str], list[str], list[str]]:
         """Extracts features based on their type.
 
         Parameters
@@ -15,7 +15,7 @@ def extract_features(
             A Pandas DataFrame.
         var_type : {'num', 'cat', 'other', 'all'}
             The type of the feature to extract.
-        ignore_cols : List[str], optional
+        ignore_cols : list[str], default=None
             Features to exclude from extraction.
         unique_value_threshold : int, default=12
             The threshold below which numerical features are considered categorical.
@@ -24,7 +24,7 @@ def extract_features(
 
         Returns
         -------
-        Union[List[str], Tuple[List[str], List[str], List[str]]]
+        list[str] or tuple[list[str], list[str], list[str]]
             Feature names based on the requested type.
 
         Raises
@@ -32,7 +32,7 @@ def extract_features(
         ValueError
             If `var_type` is not in {'num', 'cat', 'other', 'all'}.
         TypeError
-            If `ignore_cols` is not a list of strings.
+            If `ignore_cols` is not a list of strings or None.
         """
 
         # Validate inputs

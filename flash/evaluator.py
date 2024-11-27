@@ -5,9 +5,7 @@ from sklearn.model_selection import cross_val_score
 from sklearn.base import ClassifierMixin, BaseEstimator
 from sklearn.experimental import enable_iterative_imputer
 from sklearn.impute import KNNImputer, IterativeImputer
-from sklearn.preprocessing import (
-    StandardScaler, MinMaxScaler, OneHotEncoder, LabelEncoder, PowerTransformer, QuantileTransformer
-)
+from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 
 def basic_imputer(
         x: pd.Series,
@@ -23,9 +21,9 @@ def basic_imputer(
         The Series in which to impute missing values.
     var_type : {'num', 'cat'}
         Variable type of the Series. 'num' for numerical, 'cat' for categorical.
-    method : {'mean', 'median', 'mode', 'ffill', 'bfill'} | None, optional, default=None
+    method : {'mean', 'median', 'mode', 'ffill', 'bfill'}, default=None
         The method to impute missing values. If None, the default method for the given `var_type` is used.
-    fallback : {'mean', 'median', 'mode', 'ffill', 'bfill'} | None, optional, default=None
+    fallback : {'mean', 'median', 'mode', 'ffill', 'bfill'}, default=None
         The fallback imputation strategy if the `method` fails to impute all missing values. If None, the default fallback for the given `var_type` is used.
 
     Returns
@@ -95,7 +93,7 @@ def advanced_numerical_imputer(
         must be present in the DataFrame.
     num_cols : list[str]
         List of numerical features in the DataFrame.
-    cat_cols : list[str] | None, optional, default=None
+    cat_cols : list[str], default=None
         List of categorical features in the DataFrame.
     handle_cat_cols : {'ohe', 'mode', 'drop_rows', 'drop_cols'}, default='ohe'
         The strategy to handle missing values in categorical columns:

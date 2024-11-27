@@ -10,7 +10,7 @@ def export(df: pd.DataFrame, file_path: str, force_overwrite: bool = False) -> N
         The DataFrame to export.
     file_path : str
         Path where the DataFrame will be saved as a CSV file.
-    force_overwrite : bool, optional
+    force_overwrite : bool, default=False
         Whether to overwrite the file if it exists, by default False.
 
     Raises

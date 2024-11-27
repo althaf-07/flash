@@ -3,10 +3,8 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 import seaborn as sns
-from scipy import stats
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
-from sklearn.preprocessing import FunctionTransformer, PowerTransformer, QuantileTransformer
 
 def stats_moments(df_num: pd.DataFrame, round_: int = 2) -> pd.DataFrame:
     """Calculates statistical moments for numerical features.
@@ -55,16 +53,16 @@ def hist_box_viz(
     ----------
     df_num : pd.DataFrame
         A DataFrame containing numerical features in which to plot Histograms and Boxplots.
-    figsize : tuple[int, int], optional, default=None
+    figsize : tuple[int, int], default=None
         Figure size of the plot. If None, `figsize` will be automatically 
         calculated using number of features.
-    hist_xlabel : str | None, optional, default=None
+    hist_xlabel : str, default=None
         X-axis label for histograms.
-    hist_ylabel : str | None, optional, default=None
+    hist_ylabel : str, default=None
         Y-axis label for histograms.
-    box_xlabel : str | None, optional, default=None
+    box_xlabel : str, default=None
         X-axis label for boxplots.
-    box_ylabel : str | None, optional, default=None
+    box_ylabel : str, default=None
         Y-axis label for boxplots.
 
     Returns
@@ -113,14 +111,14 @@ def nan_value_viz(
     ----------
     df : pd.DataFrame
         A Pandas DataFrame
-    figsize : Tuple[int, int] | None, optional, default=None
+    figsize : tuple[int, int], default=None
         Figure size of the plot. If None, `figsize` will be automatically 
         calculated based on the number of features in the DataFrame.
     cmap : str, default='Blues'
         Colour map for the missing values. 
         Read https://matplotlib.org/stable/gallery/color/colormap_reference.html and
         https://matplotlib.org/stable/users/explain/colors/colormaps.html for more info.
-    x_label_rotation : int | float | None, optional, default=None
+    x_label_rotation : int or float, default=None
         This should be a numerical value. With this, we can control the rotation of X-axis
         labels, thus enhancing visibility.
 
@@ -158,10 +156,10 @@ def count_viz(
         A DataFrame containing categorical features in which to plot countplots.
     n_cols : int, default=3
         The number of plots you want in a single row.
-    figsize : tuple[int, int] | None, optional
+    figsize : tuple[int, int], default=None
         Figure size for the entire figure. If None, `figsize` is automatically caluculated
         based on the number of features in DataFrame and `n_cols`.
-    x_label_rotation : dict[str, int | float] | None, optional, default=None
+    x_label_rotation : dict[str, int], default=None
         This dictionary should contain the features' x labels you want to rotate and the
         rotation value. If None, there will be no rotation for any of the x labels.
 
@@ -229,19 +227,17 @@ def pair_viz(
             A Pandas DataFrame containing numerical features.
         kind : {'scatter', 'kde', 'hist', 'reg'}, default='scatter'
             The type of the pairplot to plot.
-        diag_kind : {'auto', 'hist', 'kde'} | None, optional, default='kde'
+        diag_kind : {'auto', 'hist', 'kde'}, default='kde'
             Kind of plot for the diagonal subplots. If 'auto', choose based on whether or 
             not hue is used.
-        mask : {'upper', 'lower'} | None, optional, default='upper'
+        mask : {'upper', 'lower'}, default='upper'
             Mask out the upper or lower triangle of the plot grid.
-        figsize : tuple[int, int] | None, optional, default=None
+        figsize : tuple[int, int], default=None
             The figure size of the pairplot.
-        plot_kws : dict[str, any] | None, optional, default=None
-            Arguments passed to the bivariate plotting function.
-        diag_kws : dict[str, any] | None, optional, default=None
-            Arguments passed to the univariate plotting function.
-        grid_kws : dict[str, any] | None, optional, default=None
-            Arguments passed to the PairGrid constructor.
+        {plot, diag, grid}_kws : dicts, default=None
+            Dictionaries of keyword arguments. `plot_kws` are passed to the bivariate plotting function,
+            `diag_kws` are passed to the univariate plotting function, and `grid_kws` are passed to the
+            PairGrid constructor.
 
         Returns
         -------
@@ -317,11 +313,11 @@ def corr_heatmap_viz(
             A Pandas DataFrame containing only numerical features.
         method : {'person', 'kendall', 'spearman'}, default='pearson'
             Method of correlation.
-        mask : {'upper', 'lower'} | None, optional, default='upper'
+        mask : {'upper', 'lower'}, default='upper'
             The way you want to mask the duplicate correlations.
-        figsize : tuple[int, int] | None, optional, default=None
+        figsize : tuple[int, int], default=None
             The figure size for the plot.
-        heatmap_kws : dict[str, any] | None, optional, default=None
+        heatmap_kws : dict[str, any], default=None
             Keyword arguments for the heatmap plot.
             See https://seaborn.pydata.org/generated/seaborn.heatmap.html for more info.
 
@@ -394,12 +390,12 @@ def crosstab_heatmap_viz(
         A Pandas DataFrame containing categorical features.
     normalize : {'index', 'columns', 'both'}, default='index'
         The way you want to normalize the crosstab for categorical features.
-    ref_col : list[str] | None, optional, default=None
+    ref_col : list[str], default=None
         The columns to compare the other categorical features to. Defaults to all columns.
-    figsize : tuple[int, int] | None, optional, default=None
+    figsize : tuple[int, int], default=None
         The figure size for the plots. If None, it will be calculated based on the number
         of unique values in features of the DataFrame.
-    heatmap_kws : dict[str, any] | None, optional, default=None
+    heatmap_kws : dict[str, any] , default=None
         Keyword arguments for the heatmap. If None, defaults are used. See Seaborn docs
         for more options: https://seaborn.pydata.org/generated/seaborn.heatmap.html.
 
