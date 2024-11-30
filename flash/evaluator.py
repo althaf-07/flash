@@ -8,10 +8,10 @@ from sklearn.impute import KNNImputer, IterativeImputer
 from sklearn.preprocessing import StandardScaler, OneHotEncoder, LabelEncoder
 
 def basic_imputer(
-        x: pd.Series,
-        var_type: Literal['num', 'cat'],
-        method: Literal['mean', 'median', 'mode', 'ffill', 'bfill'] | None = None,
-        fallback: Literal['mean', 'median', 'mode', 'ffill', 'bfill'] | None = None
+    x: pd.Series,
+    var_type: Literal['num', 'cat'],
+    method: Literal['mean', 'median', 'mode', 'ffill', 'bfill'] | None = None,
+    fallback: Literal['mean', 'median', 'mode', 'ffill', 'bfill'] | None = None
     ) -> pd.Series:
     """Imputes missing values using basic statistical measures.
 
@@ -74,11 +74,11 @@ def basic_imputer(
     return x
 
 def advanced_numerical_imputer(
-        df: pd.DataFrame,
-        num_cols: list[str],
-        cat_cols: list[str] | None = None,
-        handle_cat_cols: Literal['ohe', 'mode', 'drop_rows', 'drop_cols'] = 'ohe',
-        method: Literal['knn', 'iterative'] = 'knn'
+    df: pd.DataFrame,
+    num_cols: list[str],
+    cat_cols: list[str] | None = None,
+    handle_cat_cols: Literal['ohe', 'mode', 'drop_rows', 'drop_cols'] = 'ohe',
+    method: Literal['knn', 'iterative'] = 'knn'
     ) -> pd.DataFrame:
     """Imputes missing values of numerical features using advanced imputation methods.
 
@@ -163,12 +163,12 @@ def advanced_numerical_imputer(
     return df_imputed[num_cols]
 
 def advanced_categorical_imputer(
-        df: pd.DataFrame,
-        cat_cols: list[str],
-        target: str,
-        clf_model: ClassifierMixin,
-        handle_other_cat_cols: Literal['ohe', 'mode', 'drop_rows', 'drop_cols'] = 'ohe'
-        ) -> pd.Series:
+    df: pd.DataFrame,
+    cat_cols: list[str],
+    target: str,
+    clf_model: ClassifierMixin,
+    handle_other_cat_cols: Literal['ohe', 'mode', 'drop_rows', 'drop_cols'] = 'ohe'
+    ) -> pd.Series:
 
     # Copying to avoid modifying original data
     df = df.copy()
@@ -227,12 +227,12 @@ def advanced_categorical_imputer(
     return df[target]
 
 def imputer_evaluator(
-        X_imputed: dict[str, pd.DataFrame],
-        y: pd.Series,
-        models: dict[str, BaseEstimator],
-        scale: bool = False,
-        ohe: bool = False,
-        scoring: str = 'accuracy'
+    X_imputed: dict[str, pd.DataFrame],
+    y: pd.Series,
+    models: dict[str, BaseEstimator],
+    scale: bool = False,
+    ohe: bool = False,
+    scoring: str = 'accuracy'
     ) -> pd.DataFrame:
     """Evaluates missing value imputation strategies.
 

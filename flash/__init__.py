@@ -7,6 +7,7 @@ from .analysis import (
     pair_viz,
     corr_heatmap_viz, 
     crosstab_heatmap_viz,
+    num_cat_viz
     )
 
 from .preprocessing import (
