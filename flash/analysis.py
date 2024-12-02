@@ -3,6 +3,7 @@ from typing import Literal
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import statsmodels.api as sm
 import matplotlib.pyplot as plt
 import matplotlib.colors as mcolors
 
@@ -640,5 +641,98 @@ def num_cat_viz(
         fig, axs = _plot_kde()
     else:
         raise ValueError("The 'kind' parameter must be either of 'box', 'point', or 'kde'")
+
+    return fig, axs
+
+def feature_transform_viz(
+    col: pd.Series,
+    transformed_data: dict[str, pd.DataFrame] | None = None,
+    kind: Literal['hist', 'qq'] = 'hist',
+    col_wrap: int = 3,
+    figsize: tuple[int, int] | None = None
+    ) -> tuple[plt.Figure, plt.Axes]:
+    """Plots histogram or qq plots for transformed features.
+
+    Parameters
+    ----------
+    col : pd.Series
+        ...
+    transformed_data : dict[str, pd.DataFrame], default=None
+        A dictionary containing transformed Pandas DataFrames.
+    kind : {'hist', 'qq'}, default='hist'
+        The type of the plot you want to plot.
+    col_wrap : int, default=3
+        The number of columns you want in the entire figure.
+    figsize : tuple[int, int], default=None
+        The size of figure.
+
+    Returns
+    -------
+    fig, axs : tuple[plt.Figure, plt.Axes]
+        The Figure and Axes object containing the plots.
+
+    Raises
+    ------
+    TypeError
+        If 'col' is not a Pandas DataFrame.
+        If 'transformed_data' is not a dictionary.
+    ValueError
+        If 'kind' is not either of 'hist' or 'qq'.
+        If 'col_wrap' is not a positive integer.
+    """
+
+    # Validate inputs
+    if not isinstance(col, pd.Series):
+        raise TypeError("'col' parameter must be a Pandas Series")
+    if transformed_data is not None and not isinstance(transformed_data, dict):
+        raise TypeError("'transformed_data' parameter must be a dictionary of Pandas DataFrames")
+    if kind not in ['hist', 'qq']:
+        raise ValueError("Choose from either 'hist' or 'qq'.")
+    if not isinstance(col_wrap, int) or col_wrap <= 0:
+        raise ValueError("'col_wrap' parameter must be a positive integer.")
+
+    col_name = col.name
+
+    # Select the plotting logic
+    if transformed_data is None:
+        figsize = figsize or (12, 4.8)
+        fig, axs = plt.subplots(1, 2, figsize=figsize)
+
+        # Plot histogram
+        sns.histplot(col, kde=True, ax=axs[0])
+        axs[0].set_title(f"Histogram of {col_name}")
+
+        # Plot qq plot
+        sm.qqplot(col, line='45', ax=axs[1])
+        axs[1].set_title(f"Q-Q plot of {col_name}")
+    else:
+        # Include the original column in the transformed_data dictionary
+        transformed_data = {'Original': pd.DataFrame(col, columns=[col_name]),
+                            **transformed_data}
+        n_transformers = len(transformed_data)
+        n_rows = math.ceil(n_transformers / col_wrap)
+
+        # Adjust figure size based on number of plots
+        figsize = figsize or (6 * col_wrap, 4.5 * n_rows)
+        fig, axs = plt.subplots(n_rows, col_wrap, figsize=figsize)
+        axs = axs.flatten()
+
+        # Delete empty subplots
+        for ax in axs[n_transformers:]:
+            fig.delaxes(ax)
+        axs = axs[:n_transformers] # Update the `axs` variable to exclude the deleted axes
+
+        for i, (transformer, df) in enumerate(transformed_data.items()):
+            if kind == 'hist':
+                sns.histplot(df[col_name], kde=True, ax=axs[i])
+            else:
+                sm.qqplot(df[col_name], line='45', ax=axs[i])
+            axs[i].set_title(transformer)
+
+    for ax in axs:
+        ax.set_xlabel('')
+        ax.set_ylabel('')
+    plt.tight_layout()
+    plt.close()
 
     return fig, axs

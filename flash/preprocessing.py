@@ -1,5 +1,7 @@
 from typing import Literal
+import numpy as np
 import pandas as pd
+from sklearn.preprocessing import FunctionTransformer, PowerTransformer, QuantileTransformer
 
 def extract_features(
     df: pd.DataFrame,
@@ -84,4 +86,58 @@ def calc_nan_values(df: pd.DataFrame, pct: bool = True) -> pd.Series:
 
     # Return percentage or count of missing values
     return (missing_values / df.shape[0] * 100).round(2) if pct else missing_values
-  
+
+def feature_transform(
+    df_num: pd.DataFrame | pd.Series,
+    transformers: dict | None = None,
+    epsilon: float = 1e-10
+    ):
+    """Transforms numerical features.
+
+    Parameters
+    ----------
+    df_num : pd.DataFrame or pd.Series
+        A Pandas DataFrame or a Pandas Series containing numerical features. If `df_num`
+        is a Pandas Series, it is converted to Pandas DataFrame
+    transformers : dict, default=None
+        A dictionary containing transformers. If None, the following default transformers
+        are applied:
+        - Log transformation
+        - Square transformation
+        - Square Root transformation
+        - Reciprocal transformation
+        - Quantile transformation
+        - Yeo-Johnson transformation.
+    epsilon : float, default=1e-10
+         A small value added to avoid issues with zero or negative values for certain
+         transformations.
+
+    Returns
+    -------
+    transformed_data : dict[str, pd.DataFrame]
+       A dictionary where keys are the names of the transformations and values are the
+       corresponding transformed features.
+    """
+
+    if isinstance(df_num, pd.Series):
+        df_num = pd.DataFrame(df_num, columns=[df_num.name])
+
+    cols = df_num.columns
+    if transformers is None:
+        transformers = {
+            'Log': FunctionTransformer(func=lambda X: np.log(X + epsilon), validate=False),
+            'Square': FunctionTransformer(func=np.square, validate=False),
+            'Square Root': FunctionTransformer(func=lambda X: np.sqrt(X + epsilon), validate=False),
+            'Reciprocal': FunctionTransformer(func=lambda X: np.reciprocal(X + epsilon), validate=False),
+            'Quantile': QuantileTransformer(n_quantiles=df_num.shape[0], output_distribution='normal'),
+            'Yeo-Johnson': PowerTransformer(standardize=False)
+        }
+
+    transformed_data = {}
+
+    # Apply each transformer and store the result in the dictionary
+    for name, transformer in transformers.items():
+        transformed_df = pd.DataFrame(transformer.fit_transform(df_num), columns=cols)
+        transformed_data[name] = transformed_df
+
+    return transformed_data 

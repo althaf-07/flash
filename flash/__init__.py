@@ -7,12 +7,14 @@ from .analysis import (
     pair_viz,
     corr_heatmap_viz, 
     crosstab_heatmap_viz,
-    num_cat_viz
+    num_cat_viz,
+    feature_transform_viz,
     )
 
 from .preprocessing import (
     extract_features,
-    calc_nan_values
+    calc_nan_values,
+    feature_transform,
     )
     
 from .evaluator import (
@@ -20,3 +22,7 @@ from .evaluator import (
     advanced_numerical_imputer,
     advanced_categorical_imputer,
     )
+
+from .utils import (
+    export,
+)
