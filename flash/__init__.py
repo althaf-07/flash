@@ -7,11 +7,14 @@ from .analysis import (
     pair_viz,
     corr_heatmap_viz, 
     crosstab_heatmap_viz,
+    num_cat_viz,
+    feature_transform_viz,
     )
 
 from .preprocessing import (
     extract_features,
-    calc_nan_values
+    calc_nan_values,
+    feature_transform,
     )
     
 from .evaluator import (
@@ -20,7 +23,6 @@ from .evaluator import (
     advanced_categorical_imputer,
     )
 
-# Metadata
-__version__ = '0.1.0'
-__author__ = 'Althaf Muhammad'
-__email__ = 'flashlib0308@gmail.com'
+from .utils import (
+    export,
+)
