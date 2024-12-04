@@ -15,9 +15,6 @@ from .preprocessing import (
     extract_features,
     calc_nan_values,
     feature_transform,
-    )
-    
-from .evaluator import (
     basic_imputer,
     advanced_numerical_imputer,
     advanced_categorical_imputer,
