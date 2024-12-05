@@ -359,8 +359,8 @@ def corr_heatmap_viz(
 
     # Default figsize
     if figsize is None:
-        aspect_ratio = 1.4
-        width = max(5, min(20, df_num.shape[1] + 2)) # Cap width between 5 and 20
+        aspect_ratio = 2
+        width = df_num.shape[1]*3
         height = width / aspect_ratio
         figsize = (width, height)
 
@@ -369,7 +369,6 @@ def corr_heatmap_viz(
     sns.heatmap(corr, mask=mask_array, ax=ax, **heatmap_kws)
     ax.set_title(f'{method.capitalize()} Correlation Heatmap')
     plt.tight_layout()
-    plt.close() # Prevent the plot being displayed after returning
     return fig, ax
     
 def crosstab_heatmap_viz(
