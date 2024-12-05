@@ -296,7 +296,6 @@ def pair_viz(
                 grid.axes[i, j].set_visible(False)
 
     plt.tight_layout()
-    plt.close() # Prevent the plot being displayed after returning
     return grid
 
 def corr_heatmap_viz(
