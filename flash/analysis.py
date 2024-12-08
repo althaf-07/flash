@@ -98,9 +98,9 @@ def hist_box_viz(
 
 def nan_value_viz(
     df: pd.DataFrame, 
-    figsize: tuple[int, int] | None = None, 
+    figsize: tuple[int, int] | None = None,
     cmap: str = 'Blues', 
-    x_label_rotation: int | float | None = None
+    x_label_rotation: float | None = None
     ) -> tuple[plt.Figure, plt.Axes]:
     """Plots a heatmap of missing values in the DataFrame.
     We can use this visualization to identify whether the missing values are 
@@ -118,7 +118,7 @@ def nan_value_viz(
         Colour map for the missing values. 
         Read https://matplotlib.org/stable/gallery/color/colormap_reference.html and
         https://matplotlib.org/stable/users/explain/colors/colormaps.html for more info.
-    x_label_rotation : int or float, default=None
+    x_label_rotation : float, default=None
         This should be a numerical value. With this, we can control the rotation of X-axis
         labels, thus enhancing visibility.
 
@@ -129,7 +129,7 @@ def nan_value_viz(
     """
 
     # Calculate figure size if not provided
-    figsize = figsize or (df.shape[1] / 4 * 5, 4)
+    figsize = figsize or (max(6.4, df.shape[1]*1.7), 4.8)
     
     # Create figure and subplot to plot the heatmap
     fig, ax = plt.subplots(figsize=figsize)
@@ -370,11 +370,12 @@ def corr_heatmap_viz(
     ax.set_title(f'{method.capitalize()} Correlation Heatmap')
     plt.tight_layout()
     return fig, ax
-    
+
 def crosstab_heatmap_viz(
-    df_cat: pd.DataFrame,
-    normalize: Literal['index', 'columns', 'both'] = 'index',
+    df: pd.DataFrame,
+    cat_cols: list[str],
     ref_cols: list[str] | None = None,
+    normalize: Literal['index', 'columns', 'both'] = 'index',
     figsize: tuple[int, int] | None = None,
     heatmap_kws: dict[str, any] | None = None
     ) -> None:
@@ -382,12 +383,14 @@ def crosstab_heatmap_viz(
 
     Parameters
     ----------
-    df_cat : pd.DataFrame
-        A Pandas DataFrame containing categorical features.
-    normalize : {'index', 'columns', 'both'}, default='index'
-        The way you want to normalize the crosstab for categorical features.
+    df : pd.DataFrame
+        A Pandas DataFrame.
+    cat_cols : list[str]
+        The categorical features from the dataset.
     ref_col : list[str], default=None
         The columns to compare the other categorical features to. Defaults to all columns.
+    normalize : {'index', 'columns', 'both'}, default='index'
+        The way you want to normalize the crosstab for categorical features.
     figsize : tuple[int, int], default=None
         The figure size for the plots. If None, it will be calculated based on the number
         of unique values in features of the DataFrame.
@@ -421,31 +424,30 @@ def crosstab_heatmap_viz(
             "fmt": '0.2f'
         }
 
-    # Get the list of categorical columns and the reference columns
-    cat_cols = df_cat.columns.tolist()
+    # reference columns
     ref_cols = ref_cols or cat_cols
 
     # The number of unique values for each column for dynamic figure sizing
-    n_unique = {col: df_cat[col].nunique() for col in set(cat_cols + ref_cols)}
+    n_unique = {col: df[col].nunique() for col in set(cat_cols + ref_cols)}
 
     # Function to generate and plot the crosstab heatmap
-    def _plot(normalize):
+    def _plot(normalize, figsize):
         if normalize == 'both':
             fig_width = max(n_unique[columns_col] * 2, 13)
-            fig_height = min(n_unique[index_col]*2 - 1, 26)
+            fig_height = min(n_unique[index_col]*1.3 + 0.4, 26)
             figsize = figsize or (fig_width, fig_height)
             fig, axs = plt.subplots(1, 2, figsize=figsize)
 
             # Normalize by index and by columns
-            index_table = pd.crosstab(df_cat[index_col], df_cat[columns_col], normalize='index') * 100
-            columns_table = pd.crosstab(df_cat[index_col], df_cat[columns_col], normalize='columns') * 100
+            index_table = pd.crosstab(df[index_col], df[columns_col], normalize='index') * 100
+            columns_table = pd.crosstab(df[index_col], df[columns_col], normalize='columns') * 100
 
             sns.heatmap(index_table, ax=axs[0], **heatmap_kws)
             axs[0].set_title(f"{index_col} vs {columns_col} (Index Normalized)")
             sns.heatmap(columns_table, ax=axs[1], **heatmap_kws)
             axs[1].set_title(f"{index_col} vs {columns_col} (Column Normalized)")
         else:
-            table = pd.crosstab(df_cat[index_col], df_cat[columns_col], normalize=normalize) * 100
+            table = pd.crosstab(df[index_col], df[columns_col], normalize=normalize) * 100
 
             fig_width = n_unique[columns_col] * 2
             fig_height = n_unique[index_col]*2 - 1
@@ -466,7 +468,7 @@ def crosstab_heatmap_viz(
             if index_col == columns_col or columns_col in used_index_cols:
                 continue
 
-            _plot(normalize)
+            _plot(normalize, figsize)
             print("-" * 150)
 
         # Track the columns we have already used for plotting
